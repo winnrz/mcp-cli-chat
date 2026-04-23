@@ -39,8 +39,10 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 3. Install dependencies:
 
 ```bash
-uv pip install -e .
+uv sync
 ```
+
+This installs runtime dependencies and the `dev` group (pytest, pytest-asyncio).
 
 4. Run the project
 
@@ -61,6 +63,7 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
 ```bash
 pip install anthropic python-dotenv prompt-toolkit "mcp[cli]==1.8.0"
+pip install pytest pytest-asyncio  # optional, for running tests
 ```
 
 3. Run the project
@@ -93,18 +96,38 @@ Use the / prefix to execute commands defined in the MCP server:
 
 Commands will auto-complete when you press Tab.
 
+## MCP Server
+
+The bundled `mcp_server.py` exposes the in-memory `docs` dictionary to MCP clients via:
+
+- **Tools**
+  - `read_doc_contents(doc_id)` — return the contents of a document.
+  - `edit_document(doc_id, old_str, new_str)` — replace `old_str` with `new_str` in a document.
+- **Resources**
+  - `docs://documents` — JSON list of all document IDs.
+  - `docs://documents/{doc_id}` — contents of a single document.
+- **Prompts**
+  - `format(doc_id)` — rewrite a document in markdown format.
+  - `summarize(doc_id)` — produce a concise summary of a document.
+
 ## Development
 
 ### Adding New Documents
 
 Edit the `mcp_server.py` file to add new documents to the `docs` dictionary.
 
-### Implementing MCP Features
+### Testing
 
-To fully implement the MCP features:
+Tests live in `tests/` and use `pytest` with `pytest-asyncio` (auto mode).
 
-1. Complete the TODOs in `mcp_server.py`
-2. Implement the missing functionality in `mcp_client.py`
+- `tests/test_mcp_server.py` exercises the server in-process against the `FastMCP` instance.
+- `tests/test_mcp_client.py` spawns the server as a subprocess and exercises `MCPClient` end-to-end.
+
+Run the suite with:
+
+```bash
+uv run pytest
+```
 
 ### Linting and Typing Check
 
